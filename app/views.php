@@ -48,10 +48,22 @@ function page_heading(string $title, string $description = '', ?string $action =
     <?php
 }
 
-function empty_state(string $title, string $description, ?string $link = null, ?string $label = null): void
+const EMPTY_ICONS = [
+    'bowl' => '<path d="M4 11h16v2a8 8 0 0 1-8 8 8 8 0 0 1-8-8z"/><path d="M6 5c0 2.4-1 4-1 5.6M12 5c0 2.4-1 4-1 5.6M18 5c0 2.4-1 4-1 5.6"/>',
+    'bag' => '<path d="M5 8h14l-1 12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/>',
+    'orders' => '<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 9h6M9 13h6M9 17h3"/>',
+    'dish' => '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/>',
+    'tag' => '<path d="M3 12V4h8l10 10-8 8z"/><circle cx="8" cy="8" r="1.4"/>',
+    'store' => '<path d="M4 10l1.5-6h13L20 10M4 10v10h16V10M9 20v-6h6v6"/>',
+    'users' => '<circle cx="9" cy="8" r="3.4"/><path d="M3 20c.6-3.6 3-5.4 6-5.4s5.4 1.8 6 5.4"/><circle cx="17" cy="9" r="2.6"/><path d="M16.4 14.8c2.6.3 4.2 1.9 4.6 4.4"/>',
+];
+
+function empty_state(string $title, string $description, ?string $link = null, ?string $label = null, string $icon = 'bowl'): void
 {
+    $iconPath = EMPTY_ICONS[$icon] ?? EMPTY_ICONS['bowl'];
     ?>
     <section class="empty-state">
+        <div class="empty-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><?= $iconPath ?></svg></div>
         <h2><?= e($title) ?></h2><p><?= e($description) ?></p>
         <?php if ($link): ?><a class="button button-outline" href="<?= e($link) ?>"><?= e($label) ?></a><?php endif; ?>
     </section>
@@ -90,6 +102,7 @@ function render(string $page, string $title, ?array $user, array $data = []): vo
         default => $page,
     };
     $cartCount = $role === 'student' && $page !== 'message' ? cart_quantity((int) $user['id']) : 0;
+    $vendorPending = $role === 'vendor' ? (int) (row('SELECT COUNT(*) AS total FROM orders WHERE vendor_id = ? AND status = "pending"', [$user['vendor_id']])['total'] ?? 0) : 0;
     $notice = take_session('notice');
     $old = take_session('old');
     $values = $data['record'] ?? [];
@@ -103,21 +116,25 @@ function render(string $page, string $title, ?array $user, array $data = []): vo
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#17392c">
+    <meta name="theme-color" content="#fffdf7">
     <meta name="description" content="Browse campus kitchens and order food for pickup or campus delivery.">
+    <meta property="og:title" content="CampusBite">
+    <meta property="og:description" content="Browse campus kitchens and order food for pickup or campus delivery.">
+    <meta property="og:type" content="website">
     <title><?= e($title) ?> | CampusBite</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='15' fill='%2314402e'/%3E%3Cpath d='M13 37h38v4a12 12 0 0 1-12 12H25a12 12 0 0 1-12-12z' fill='%23dff09f'/%3E%3Cpath d='M22 13c0 6.5-3 10.5-3 15M32 13c0 6.5-3 10.5-3 15M42 13c0 6.5-3 10.5-3 15' stroke='%23dff09f' stroke-width='4' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
     <link rel="stylesheet" href="assets/bootstrap.min.css">
     <link rel="stylesheet" href="assets/app.css">
     <script src="assets/app.js" defer></script>
 </head>
-<body>
+<body id="top">
 <a class="skip-link" href="#main">Skip to content</a>
-<header class="site-header">
+<header class="site-header" data-header>
     <div class="site-width header-inner">
         <a class="brand" href="<?= e(url($home)) ?>" aria-label="CampusBite home"><span class="brand-icon" aria-hidden="true"></span><span>Campus<span class="brand-accent">Bite</span></span></a>
         <nav class="site-nav" aria-label="Main navigation">
             <?php foreach ($navigation as $route => $label): ?>
-                <a href="<?= e(url($route)) ?>"<?= $current === $route ? ' aria-current="page"' : '' ?>><?= e($label) ?></a>
+                <a href="<?= e(url($route)) ?>"<?= $current === $route ? ' aria-current="page"' : '' ?>><?= e($label) ?><?php if ($route === 'vendor-orders' && $vendorPending): ?><span class="nav-badge"><?= e($vendorPending) ?></span><?php endif; ?></a>
             <?php endforeach; ?>
         </nav>
         <div class="header-actions">
@@ -145,7 +162,12 @@ function render(string $page, string $title, ?array $user, array $data = []): vo
         <?php require __DIR__ . '/student-view.php'; ?>
     <?php endif; ?>
 </main>
-<footer class="site-footer"><div class="site-width footer-inner"><a href="<?= e(url($home)) ?>">CampusBite</a><span>Campus food ordering</span></div></footer>
+<footer class="site-footer">
+    <div class="site-width footer-inner">
+        <div class="footer-brand"><a href="<?= e(url($home)) ?>">Campus<em>Bite</em></a><span>Campus food ordering · Pickup and delivery between classes</span></div>
+        <div class="footer-links"><a href="<?= e(url('menu')) ?>">Menu</a><a href="#top">Back to top</a></div>
+    </div>
+</footer>
 </body>
 </html>
     <?php

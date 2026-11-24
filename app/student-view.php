@@ -16,6 +16,7 @@ switch ($page):
                     <h1>Good food.<br><em>Right on campus.</em></h1>
                     <p>Order from your campus kitchens for pickup or delivery between classes.</p>
                     <a class="button button-lime" href="#campus-menu">Explore the menu</a>
+                    <?php if ($data['vendors']): ?><span class="hero-note"><?= e(count($data['vendors'])) ?> <?= count($data['vendors']) === 1 ? 'kitchen' : 'kitchens' ?> serving now · pickup or delivery</span><?php endif; ?>
                 </div>
                 <img class="hero-image" src="assets/campus-bowl.webp" alt="Glazed chicken rice bowl with cucumber and fresh greens" fetchpriority="high">
             </section>
@@ -48,13 +49,16 @@ switch ($page):
                 <?php endforeach; ?>
             </nav>
             <?php if (!$items): ?>
-                <?php empty_state('No dishes found', 'Try a different search or clear your filters.', url('menu') . '#campus-menu', 'Clear filters'); ?>
+                <?php empty_state('No dishes found', 'Try a different search or clear your filters.', url('menu') . '#campus-menu', 'Clear filters', icon: 'bowl'); ?>
             <?php else: ?>
                 <div class="menu-grid">
                     <?php foreach ($items as $item): ?>
+                        <?php preg_match('/^./us', $item['name'], $initial); ?>
                         <article class="menu-card">
                             <?php if ($item['photo_slot']): ?>
                                 <div class="dish-photo dish-photo-<?= e($item['photo_slot']) ?>" aria-hidden="true"><img src="assets/menu-photos.webp" alt="" loading="lazy" draggable="false"></div>
+                            <?php else: ?>
+                                <div class="dish-photo dish-photo-empty" data-initial="<?= e($initial[0] ?? 'C') ?>" aria-hidden="true"></div>
                             <?php endif; ?>
                             <div class="menu-card-copy">
                                 <div class="dish-meta"><span><?= e($item['vendor_name']) ?></span><span><?= e($item['category_name']) ?></span></div>
@@ -87,7 +91,7 @@ switch ($page):
         <div class="auth-layout">
             <section class="auth-panel panel">
                 <?php page_heading($title, $registration ? 'Create a student account to order from campus kitchens.' : 'Use your CampusBite email or username.'); ?>
-                <form class="stack-form" method="post" action="index.php">
+                <form class="stack-form" method="post" action="index.php"<?= $registration ? ' data-strength' : '' ?>>
                     <?php form_fields($page); ?>
                     <?php if ($registration): ?>
                         <div><?php field('username', 'Username', $input('username'), 'text', 30, 'username'); ?><div class="form-hint">3–30 characters. Use letters, numbers, periods, underscores or hyphens.</div></div>
@@ -96,7 +100,10 @@ switch ($page):
                         <div><?php field('identifier', 'Email or username', $input('identifier'), 'text', 254, 'username'); ?></div>
                     <?php endif; ?>
                     <div><?php field('password', 'Password', '', 'password', 72, $registration ? 'new-password' : 'current-password'); ?>
-                        <?php if ($registration): ?><div class="form-hint">At least 8 characters, with a number and a special character.</div><?php endif; ?>
+                        <?php if ($registration): ?>
+                            <div class="form-hint">At least 8 characters, with a number and a special character.</div>
+                            <div class="strength" data-level="0" aria-live="polite"><div class="strength-bars"><span></span><span></span><span></span><span></span></div><div class="strength-label"></div></div>
+                        <?php endif; ?>
                     </div>
                     <?php if ($registration): ?><div><?php field('confirm_password', 'Confirm password', '', 'password', 72, 'new-password'); ?></div><?php endif; ?>
                     <button class="button button-primary" type="submit"><?= $registration ? 'Create account' : 'Sign in' ?></button>
@@ -105,7 +112,10 @@ switch ($page):
                     <a href="<?= e(url($registration ? 'login' : 'register')) ?>"><?= $registration ? 'Sign in' : 'Create a student account' ?></a>
                 </p>
             </section>
-            <div class="auth-art" aria-hidden="true"><img src="assets/campus-bowl.webp" alt=""></div>
+            <div class="auth-art" aria-hidden="true">
+                <img src="assets/campus-bowl.webp" alt="">
+                <blockquote>Lunch between lectures, <em>sorted</em>.</blockquote>
+            </div>
         </div>
         <?php break;
 
@@ -126,7 +136,7 @@ switch ($page):
         $items = $data['items'];
         page_heading($title, $items ? $items[0]['vendor_name'] : 'Items you add from the campus menu appear here.');
         if (!$items):
-            empty_state('Your cart is empty', 'Browse the menu to add something from a campus kitchen.', url('menu'), 'Browse menu');
+            empty_state('Your cart is empty', 'Browse the menu to add something from a campus kitchen.', url('menu'), 'Browse menu', icon: 'bag');
             break;
         endif;
         $hasUnavailableItems = in_array(0, array_column($items, 'available'));
@@ -141,8 +151,11 @@ switch ($page):
                                 <form method="post" action="index.php" class="inline-form quantity-form">
                                     <?php form_fields('cart-update', (int) $item['id']); ?>
                                     <label class="visually-hidden" for="quantity-<?= e($item['id']) ?>">Quantity for <?= e($item['name']) ?></label>
-                                    <input class="form-control" id="quantity-<?= e($item['id']) ?>" name="quantity" type="number" min="1" max="99" value="<?= e($item['quantity']) ?>" required>
-                                    <button class="button button-outline button-small" type="submit">Update</button>
+                                    <span class="qty-stepper">
+                                        <button class="stepper-btn" type="button" data-step="-1" aria-label="Decrease quantity of <?= e($item['name']) ?>">&minus;</button>
+                                        <input class="form-control" id="quantity-<?= e($item['id']) ?>" name="quantity" type="number" min="1" max="99" value="<?= e($item['quantity']) ?>" inputmode="numeric" required>
+                                        <button class="stepper-btn" type="button" data-step="1" aria-label="Increase quantity of <?= e($item['name']) ?>">+</button>
+                                    </span>
                                 </form>
                             <?php endif; ?>
                             <form method="post" action="index.php" class="inline-form"><?php form_fields('cart-remove', (int) $item['id']); ?><button class="button button-quiet button-small" type="submit" aria-label="Remove <?= e($item['name']) ?>">Remove</button></form>
@@ -191,7 +204,7 @@ switch ($page):
     case 'orders':
         page_heading($title, 'Track orders from your campus kitchens.', 'menu', 'Browse menu');
         if (!$data['orders']):
-            empty_state('No orders yet', 'Your orders and status updates will appear here.');
+            empty_state('No orders yet', 'Your orders and status updates will appear here.', icon: 'orders');
         else:
             require __DIR__ . '/orders-table.php';
         endif;
@@ -202,6 +215,7 @@ switch ($page):
         break;
 
     case 'message':
+        ?><div class="message-glyph" aria-hidden="true">C<em>B</em></div><?php
         page_heading($title, $data['message']);
         ?><a class="button button-primary" href="<?= e(url($home)) ?>">Back to CampusBite</a><?php
         break;

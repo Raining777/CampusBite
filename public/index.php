@@ -87,6 +87,10 @@ try {
             $selection = value($_GET, 'status');
             $data['status'] = isset(ORDER_STATUSES[$selection]) ? $selection : '';
             $data['orders'] = vendor_orders((int) $user['vendor_id'], $data['status']);
+            $data['counts'] = [];
+            foreach (rows('SELECT status, COUNT(*) AS n FROM orders WHERE vendor_id = ? GROUP BY status', [(int) $user['vendor_id']]) as $countRow) {
+                $data['counts'][$countRow['status']] = (int) $countRow['n'];
+            }
             break;
         case 'vendor-menu':
             $data['items'] = kitchen_items((int) $user['vendor_id']);
@@ -106,6 +110,7 @@ try {
             $selection = value($_GET, 'status');
             $data['status'] = in_array($selection, ['active', 'disabled'], true) ? $selection : '';
             $data['students'] = admin_students($data['q'], $data['status']);
+            $data['totals'] = row("SELECT COUNT(*) AS total, COALESCE(SUM(is_active), 0) AS active FROM users WHERE role = 'student'") ?: ['total' => 0, 'active' => 0];
             break;
         case 'admin-kitchens':
             $data['vendors'] = rows("SELECT v.*, (SELECT COUNT(*) FROM users u WHERE u.vendor_id = v.id AND u.role = 'vendor') AS account_count FROM vendors v ORDER BY v.name");

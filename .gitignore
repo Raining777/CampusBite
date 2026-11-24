@@ -2,3 +2,10 @@
 /.env
 /var/
 *.log
+/docs/HIDDEN_BUG_LOG.md
+.shots/node_modules/
+.shots/before/
+.shots/after/
+.shots/before_jpg/
+.shots/*.png
+.shots/package*.json

@@ -1,0 +1,252 @@
+<title>CampusBite redesign review</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: dark proofing wall; each screenshot pair is a full-bleed card with a
+   drag handle. Before sits under, After clips on top. */
+:root {
+    --bg: #161618;
+    --panel: #1e1e21;
+    --panel-edge: #2c2c30;
+    --ink: #ecece4;
+    --muted: #9b9b93;
+    --faint: #6c6c66;
+    --lime: #dff09f;
+    --forest: #1d4a35;
+    color-scheme: dark;
+    --display: 'Fraunces', 'Iowan Old Style', Georgia, serif;
+    --sans: 'Public Sans', 'Segoe UI', system-ui, sans-serif;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 1rem/1.5 var(--sans);
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 0 3.5rem;
+}
+.wrap { width: min(1180px, 100%); margin-inline: auto; }
+
+header.masthead { padding-block: 2.2rem 1.6rem; border-bottom: 1px solid var(--panel-edge); }
+.masthead-inner { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 1rem 2rem; }
+h1 {
+    margin: 0;
+    font-family: var(--display);
+    font-weight: 560;
+    font-size: clamp(1.9rem, 4.4vw, 2.9rem);
+    letter-spacing: -.03em;
+    line-height: 1.05;
+    text-wrap: balance;
+}
+h1 em { color: var(--lime); font-style: italic; }
+.lede { margin: .5rem 0 0; color: var(--muted); max-width: 62ch; }
+.legend { display: flex; gap: 1rem; align-items: center; color: var(--muted); font-size: .9rem; }
+.legend .swatch { display: inline-block; width: .85rem; height: .85rem; border-radius: 3px; }
+.swatch.before { background: #4b4b4f; }
+.swatch.after { background: var(--lime); }
+
+.filters { display: flex; flex-wrap: wrap; gap: .5rem; margin: 1.5rem 0 .4rem; }
+.filter-chip {
+    appearance: none;
+    border: 1px solid var(--panel-edge);
+    background: var(--panel);
+    color: var(--muted);
+    font: inherit;
+    font-size: .86rem;
+    font-weight: 600;
+    padding: .42rem .95rem;
+    border-radius: 100px;
+    cursor: pointer;
+    transition: color .15s ease, border-color .15s ease, background-color .15s ease;
+}
+.filter-chip:hover { color: var(--ink); border-color: #46464c; }
+.filter-chip[aria-pressed="true"] { background: var(--forest); border-color: var(--forest); color: var(--lime); }
+
+section.group { margin-top: 2.4rem; }
+.group-title {
+    display: flex;
+    align-items: baseline;
+    gap: .8rem;
+    margin: 0 0 1.1rem;
+    font-family: var(--display);
+    font-weight: 540;
+    font-size: 1.35rem;
+    letter-spacing: -.02em;
+}
+.group-title small { font-family: var(--sans); font-size: .82rem; color: var(--faint); font-weight: 500; letter-spacing: .04em; text-transform: uppercase; }
+
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.1rem; }
+.card { background: var(--panel); border: 1px solid var(--panel-edge); border-radius: 14px; overflow: hidden; }
+.card-label { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: .72rem 1rem .72rem 1.05rem; border-bottom: 1px solid var(--panel-edge); }
+.card-label h2 { margin: 0; font-family: var(--sans); font-size: .95rem; font-weight: 600; letter-spacing: .01em; }
+.card-label span { color: var(--faint); font-size: .82rem; font-variant-numeric: tabular-nums; }
+
+.compare { position: relative; aspect-ratio: 1440 / 1040; overflow: hidden; background: var(--bg); user-select: none; -webkit-user-select: none; }
+.compare img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; pointer-events: none; }
+.compare .layer-after { clip-path: inset(0 0 0 var(--pos, 50%)); }
+.compare input[type="range"] {
+    position: absolute;
+    inset: 0;
+    width: 100%; height: 100%;
+    margin: 0;
+    opacity: 0;
+    cursor: ew-resize;
+    z-index: 3;
+}
+.handle {
+    position: absolute;
+    top: 0; bottom: 0;
+    left: var(--pos, 50%);
+    width: 2px;
+    background: var(--lime);
+    z-index: 2;
+    pointer-events: none;
+    box-shadow: 0 0 0 1px rgba(13, 47, 33, .35);
+}
+.handle::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: var(--lime);
+    border: 2px solid rgba(13, 47, 33, .45);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, .5);
+}
+.tag {
+    position: absolute;
+    top: .65rem;
+    z-index: 1;
+    padding: .22rem .6rem;
+    border-radius: 6px;
+    font-size: .74rem;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    background: rgba(22, 22, 24, .82);
+    color: var(--muted);
+    pointer-events: none;
+}
+.tag-before { left: .65rem; }
+.tag-after { right: .65rem; color: var(--lime); }
+
+footer.note { margin-top: 2.8rem; padding-top: 1.2rem; border-top: 1px solid var(--panel-edge); color: var(--faint); font-size: .88rem; display: flex; flex-wrap: wrap; gap: .4rem 2rem; justify-content: space-between; }
+
+@media (max-width: 860px) {
+    .grid { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+:focus-visible { outline: 2px solid var(--lime); outline-offset: 3px; border-radius: 4px; }
+</style>
+
+<header class="masthead">
+  <div class="wrap masthead-inner">
+    <div>
+      <h1>CampusBite <em>redesign</em> review</h1>
+      <p class="lede">Drag the handle on each pair to compare the original build with the redesigned one. 19 screens across the student, vendor, admin and mobile flows.</p>
+    </div>
+    <div class="legend"><span><span class="swatch before"></span> Before</span><span><span class="swatch after"></span> After</span></div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="filters" role="group" aria-label="Filter screens by role">
+    <button class="filter-chip" data-group="student" aria-pressed="true">Student</button>
+    <button class="filter-chip" data-group="vendor" aria-pressed="true">Vendor</button>
+    <button class="filter-chip" data-group="admin" aria-pressed="true">Admin</button>
+    <button class="filter-chip" data-group="mobile" aria-pressed="true">Mobile</button>
+  </div>
+
+  <section class="group" data-group="student">
+    <h2 class="group-title">Student flow <small>menu, auth, cart, checkout, orders</small></h2>
+    <div class="grid">
+      <figure class="card" data-key="guest-menu" data-wide><figcaption class="card-label"><h2>Guest menu</h2><span>desktop</span></figcaption><div class="compare"></div></figure>
+      <figure class="card" data-key="guest-login" data-wide><figcaption class="card-label"><h2>Sign in</h2><span>desktop</span></figcaption><div class="compare"></div></figure>
+      <figure class="card" data-key="guest-register" data-wide><figcaption class="card-label"><h2>Create account</h2><span>desktop</span></figcaption><div class="compare"></div></figure>
+      <figure class="card" data-key="student-menu" data-wide><figcaption class="card-label"><h2>Student menu</h2><span>desktop</span></figcaption><div class="compare"></div></figure>
+      <figure class="card" data-key="student-cart" data-wide><figcaption class="card-label"><h2>Cart with steppers</h2><span>desktop</span></figcaption><div class="compare"></div></figure>
+      <figure class="card" data-key="student-checkout" data-wide><figcaption class="card-label"><h2>Checkout</h2><span>desktop</span></figcaption><div class="compare"></div></figure>
+      <figure class="card" data-key="student-orders" data-wide><figcaption class="card-label"><h2>My orders</h2><span>desktop</span></figcaption><div class="compare"></div></figure>
+      <figure class="card" data-key="student-order" data-wide><figcaption class="card-label"><h2>Order details and progress</h2><span>desktop</span></figcaption><div class="compare"></div></figure>
+    </div>
+  </section>
+
+  <section class="group" data-group="vendor">
+    <h2 class="group-title">Vendor workspace <small>queue, order view, menu management</small></h2>
+    <div class="grid">
+      <figure class="card" data-key="vendor-orders" data-wide><figcaption class="card-label"><h2>Kitchen orders</h2><span>desktop</span></figcaption><div class="compare"></div></figure>
+      <figure class="card" data-key="vendor-order" data-wide><figcaption class="card-label"><h2>Kitchen order view</h2><span>desktop</span></figcaption><div class="compare"></div></figure>
+      <figure class="card" data-key="vendor-menu" data-wide><figcaption class="card-label"><h2>Menu items</h2><span>desktop</span></figcaption><div class="compare"></div></figure>
+      <figure class="card" data-key="vendor-item-form" data-wide><figcaption class="card-label"><h2>Add menu item</h2><span>desktop</span></figcaption><div class="compare"></div></figure>
+      <figure class="card" data-key="vendor-categories" data-wide><figcaption class="card-label"><h2>Categories</h2><span>desktop</span></figcaption><div class="compare"></div></figure>
+    </div>
+  </section>
+
+  <section class="group" data-group="admin">
+    <h2 class="group-title">Admin console <small>accounts and kitchens</small></h2>
+    <div class="grid">
+      <figure class="card" data-key="admin-students" data-wide><figcaption class="card-label"><h2>Student accounts</h2><span>desktop</span></figcaption><div class="compare"></div></figure>
+      <figure class="card" data-key="admin-kitchens" data-wide><figcaption class="card-label"><h2>Kitchens</h2><span>desktop</span></figcaption><div class="compare"></div></figure>
+      <figure class="card" data-key="admin-vendor-accounts" data-wide><figcaption class="card-label"><h2>Vendor accounts</h2><span>desktop</span></figcaption><div class="compare"></div></figure>
+    </div>
+  </section>
+
+  <section class="group" data-group="mobile">
+    <h2 class="group-title">Mobile <small>390 px viewport</small></h2>
+    <div class="grid">
+      <figure class="card" data-key="mobile-menu" data-wide><figcaption class="card-label"><h2>Mobile menu</h2><span>390 × 844</span></figcaption><div class="compare"></div></figure>
+      <figure class="card" data-key="mobile-student-menu" data-wide><figcaption class="card-label"><h2>Mobile student menu</h2><span>390 × 844</span></figcaption><div class="compare"></div></figure>
+      <figure class="card" data-key="mobile-cart" data-wide><figcaption class="card-label"><h2>Mobile cart</h2><span>390 × 844</span></figcaption><div class="compare"></div></figure>
+    </div>
+  </section>
+
+  <footer class="note">
+    <span>Left of the handle: original build · Right: redesigned build</span>
+    <span>Use the handle with a mouse, touch, or arrow keys</span>
+  </footer>
+</main>
+
+<script>
+'use strict';
+const PAIRS = {
+    'guest-menu': 1, 'guest-login': 1, 'guest-register': 1, 'student-menu': 1,
+    'student-cart': 1, 'student-checkout': 1, 'student-orders': 1, 'student-order': 1,
+    'vendor-orders': 1, 'vendor-order': 1, 'vendor-menu': 1, 'vendor-item-form': 1,
+    'vendor-categories': 1, 'admin-students': 1, 'admin-kitchens': 1,
+    'admin-vendor-accounts': 1, 'mobile-menu': 1, 'mobile-student-menu': 1, 'mobile-cart': 1,
+};
+
+for (const card of document.querySelectorAll('.card')) {
+    const key = card.dataset.key;
+    if (!PAIRS[key]) continue;
+    const box = card.querySelector('.compare');
+    box.style.setProperty('--pos', '50%');
+    if (key.startsWith('mobile-')) {
+        box.style.aspectRatio = '390 / 844';
+    }
+    box.insertAdjacentHTML('beforeend',
+        `<img src="compare/before-${key}.jpg" alt="Original ${card.querySelector('h2').textContent} page" loading="lazy">
+         <span class="tag tag-before">Before</span><span class="tag tag-after">After</span>
+         <span class="handle" aria-hidden="true"></span>
+         <img class="layer-after" src="compare/after-${key}.jpg" alt="Redesigned ${card.querySelector('h2').textContent} page" loading="lazy">
+         <input type="range" min="3" max="97" value="50" aria-label="Comparison position for ${card.querySelector('h2').textContent}">`);
+    const input = box.querySelector('input');
+    const sync = () => box.style.setProperty('--pos', input.value + '%');
+    input.addEventListener('input', sync);
+    sync();
+}
+
+for (const chip of document.querySelectorAll('.filter-chip')) {
+    chip.addEventListener('click', () => {
+        const pressed = chip.getAttribute('aria-pressed') !== 'true';
+        chip.setAttribute('aria-pressed', String(pressed));
+        for (const section of document.querySelectorAll('section[data-group="' + chip.dataset.group + '"]')) {
+            section.hidden = !pressed;
+        }
+    });
+}
+</script>

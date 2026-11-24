@@ -10,15 +10,16 @@ switch ($page):
             <input type="hidden" name="page" value="vendor-orders">
             <label for="order-status">Status</label>
             <select class="form-select" id="order-status" name="status">
-                <option value="">All orders</option>
-                <?php foreach (ORDER_STATUSES as $key => $label): ?><option value="<?= e($key) ?>"<?= selected($data['status'], $key) ?>><?= e($label) ?></option><?php endforeach; ?>
+                <?php $totalOrders = array_sum($data['counts']); ?>
+                <option value="">All orders<?= $totalOrders ? ' (' . e($totalOrders) . ')' : '' ?></option>
+                <?php foreach (ORDER_STATUSES as $key => $label): $keyCount = $data['counts'][$key] ?? 0; ?><option value="<?= e($key) ?>"<?= selected($data['status'], $key) ?>><?= e($label) ?><?= $keyCount ? ' (' . e($keyCount) . ')' : '' ?></option><?php endforeach; ?>
             </select>
             <button type="submit" class="button button-primary">Filter</button>
             <a class="button button-outline" href="<?= e(url('vendor-orders', $data['status'] ? ['status' => $data['status']] : [])) ?>">Refresh orders</a>
         </form>
         <?php
         if (!$data['orders']):
-            empty_state('No orders found', 'Orders for this kitchen appear here as students place them.', url('vendor-orders'), 'Show all orders');
+            empty_state('No orders found', 'Orders for this kitchen appear here as students place them.', url('vendor-orders'), 'Show all orders', icon: 'orders');
         else:
             require __DIR__ . '/orders-table.php';
         endif;
@@ -27,7 +28,7 @@ switch ($page):
     case 'vendor-menu':
         page_heading($title, $user['vendor_name'], 'vendor-item', 'Add menu item');
         if (!$data['items']):
-            empty_state('Your menu is empty', 'Create a category and add the first item for your kitchen.', url('vendor-categories'), 'Manage categories');
+            empty_state('Your menu is empty', 'Create a category and add the first item for your kitchen.', url('vendor-categories'), 'Manage categories', icon: 'dish');
             break;
         endif;
         ?>
@@ -55,7 +56,7 @@ switch ($page):
     case 'vendor-categories':
         page_heading($title, $user['vendor_name'], 'vendor-category', 'Add category');
         if (!$data['categories']):
-            empty_state('No categories yet', 'Add a category before publishing menu items.', url('vendor-category'), 'Add category');
+            empty_state('No categories yet', 'Add a category before publishing menu items.', url('vendor-category'), 'Add category', icon: 'tag');
             break;
         endif;
         ?>
@@ -78,7 +79,7 @@ switch ($page):
         <a class="back-link" href="<?= e(url($back)) ?>"><?= $isItem ? 'Menu items' : 'Categories' ?></a>
         <?php page_heading($title, $user['vendor_name']); ?>
         <?php if ($isItem && !$data['categories']): ?>
-            <?php empty_state('Add a category first', 'Every menu item belongs to a category.', url('vendor-category'), 'Add category'); ?>
+            <?php empty_state('Add a category first', 'Every menu item belongs to a category.', url('vendor-category'), 'Add category', icon: 'tag'); ?>
         <?php else: ?>
             <form class="panel form-panel stack-form" method="post" action="index.php">
                 <?php form_fields($isItem ? 'save-item' : 'save-category', $data['id']); ?>
@@ -99,7 +100,7 @@ switch ($page):
         <?php break;
 
     case 'admin-students':
-        page_heading($title, 'Find student accounts and manage their access.');
+        page_heading($title, (int) $data['totals']['active'] . ' active of ' . (int) $data['totals']['total'] . ' student accounts. Manage their access.');
         ?>
         <form class="toolbar filter-bar" method="get" action="index.php" role="search">
             <input type="hidden" name="page" value="admin-students">
@@ -110,7 +111,7 @@ switch ($page):
             <button class="button button-primary" type="submit">Search</button>
         </form>
         <?php if (!$data['students']): ?>
-            <?php empty_state('No students found', 'Try a different search or clear your filters.', url('admin-students'), 'Clear filters'); ?>
+            <?php empty_state('No students found', 'Try a different search or clear your filters.', url('admin-students'), 'Clear filters', icon: 'users'); ?>
         <?php else: ?>
             <div class="panel table-panel"><table class="data-table">
                 <thead><tr><th scope="col">Username</th><th scope="col">Email</th><th scope="col">Registered</th><th scope="col">Status</th><th scope="col">Actions</th></tr></thead>
@@ -126,7 +127,7 @@ switch ($page):
     case 'admin-kitchens':
         page_heading($title, 'Manage campus kitchens and their pickup points.', 'admin-kitchen', 'Add kitchen');
         if (!$data['vendors']):
-            empty_state('No kitchens yet', 'Add a kitchen to start setting up vendor accounts.', url('admin-kitchen'), 'Add kitchen');
+            empty_state('No kitchens yet', 'Add a kitchen to start setting up vendor accounts.', url('admin-kitchen'), 'Add kitchen', icon: 'store');
             break;
         endif;
         ?>
@@ -156,7 +157,7 @@ switch ($page):
     case 'admin-vendor-accounts':
         page_heading($title, 'Create and manage sign-in accounts for kitchen staff.', 'admin-vendor-account', 'Add vendor account');
         if (!$data['accounts']):
-            empty_state('No vendor accounts yet', 'Create an account and assign it to a kitchen.', url('admin-vendor-account'), 'Add vendor account');
+            empty_state('No vendor accounts yet', 'Create an account and assign it to a kitchen.', url('admin-vendor-account'), 'Add vendor account', icon: 'users');
             break;
         endif;
         ?>
@@ -179,7 +180,7 @@ switch ($page):
         <a class="back-link" href="<?= e(url('admin-vendor-accounts')) ?>">Vendor accounts</a>
         <?php page_heading($title); ?>
         <?php if (!$data['vendors']): ?>
-            <?php empty_state('Add a kitchen first', 'Every vendor account belongs to a kitchen.', url('admin-kitchen'), 'Add kitchen'); ?>
+            <?php empty_state('Add a kitchen first', 'Every vendor account belongs to a kitchen.', url('admin-kitchen'), 'Add kitchen', icon: 'store'); ?>
         <?php else: ?>
             <form class="panel form-panel stack-form" method="post" action="index.php">
                 <?php form_fields('save-vendor-account', $data['id']); ?>

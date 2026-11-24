@@ -12,8 +12,8 @@ Open the URL provided by the developer. For the default local installation, use 
 
 ## Student
 
-1. Use **Create account** to register with a unique username and email. Use 3–30 characters for the username and at least 8 characters for the password, including a number and a special character.
-2. Open **Menu** and search for `tofu`, select a kitchen, or choose a category. Add a dish and use **Cart** to change its quantity, remove it, or review your subtotal. Select an item from the other kitchen to check the switch prompt.
+1. Use **Create account** to register with a unique username and email. Use 3–30 characters for the username and at least 8 characters for the password, including a number and a special character. The strength bars under the password field are a hint only — the server enforces the same rules.
+2. Open **Menu** and search for `tofu`, select a kitchen, or choose a category. Add a dish and use **Cart** to change its quantity with the − / + stepper or by typing a value — the cart saves automatically. Remove an item or review your subtotal. Select an item from the other kitchen to check the switch prompt.
 3. Continue to **Checkout**. Place a self-pickup order. Place a second order with **Campus delivery** and enter a campus meeting point. Record the order numbers and check **My orders** after each vendor update.
 
 ## Vendor and administrator

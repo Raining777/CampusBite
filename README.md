@@ -2,6 +2,19 @@
 
 CampusBite is a campus food ordering site for students, campus kitchens and administrators. It uses PHP sessions and PDO, MySQL 8.4, HTML, Bootstrap 5.3.8 and vanilla JavaScript.
 
+## Branches
+
+| Branch | Purpose |
+| --- | --- |
+| `main` | Clean build — all 8 profile functions, no known defects |
+| `sa3-test-v1` | SA3 Phase 1 test build for the partner test group (contains the seeded defects; the hidden bug log is uploaded to Moodle, not committed) |
+
+See [the developer handover](docs/DEVELOPER_HANDOVER.md) and [the SA3 handover](docs/SA3_HANDOVER.md) for the full picture.
+
+## Design
+
+The interface uses a self-hosted design system: a warm oat-paper canvas with forest-green ink and a single lime accent, Fraunces for display type and Public Sans for interface text, both variable fonts served locally (SIL OFL 1.1 — see [assets/fonts/OFL-NOTICE.txt](public/assets/fonts/OFL-NOTICE.txt)). Custom CSS in `public/assets/app.css` covers layout, components, status chips, order timeline, dark hero/footer bookends, hover and pressed states, WCAG AA contrast and mobile breakpoints. JavaScript in `public/assets/app.js` adds cart quantity steppers, a password-strength hint (advisory only; the server validates for real), a sticky header and a double-submit guard. Bootstrap is bundled locally as a base reset only.
+
 ## Run with Docker Compose
 
 From this directory, run:
@@ -53,6 +66,16 @@ For a fresh Compose test cycle, stop the current web stack with `docker compose 
 | F08 | Admin student, kitchen and vendor account management | `app/management.php`, `app/workspace-view.php` |
 
 Checkout checks the current cart against the displayed prices, stores order and line-item snapshots in a transaction, and gives each submission a per-student unique key. Vendor status updates and history entries are transactional. Staff accounts are assigned to kitchens by the administrator. Disabled kitchens disappear from the student menu and their historical orders remain visible to the students who made them.
+
+## Local test scripts
+
+The `.shots/` folder holds Playwright scripts used to verify this build (run with `npm i playwright-core`; they drive an installed Chrome, no browser download needed):
+
+- `shots.js` — captures screenshots of every page and role (`node shots.js <outdir>`)
+- `flowtest.js` — 60 server-side functional checks over registration validation, cart, checkout, order flow, vendor and admin workflows; needs a fresh demo database per run
+- `designcheck.js` — fonts, layout overflow, sticky header, WCAG AA contrast and console-error checks
+
+These complement the course toolchain (Selenium, JMeter) and are for local regression only.
 
 The demo uses English and Malaysian ringgit. The course profile and development plan describe the registration rules. The SA2 C++ source was unavailable for a line-by-line port. [Database schema](database/schema.sql) · [Demo data](database/seed.sql)
 
