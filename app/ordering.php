@@ -244,7 +244,7 @@ function advance_order(array $actor, int $orderId, string $status): void
         if (!$order) {
             throw new RuleViolation('Order not found.');
         }
-        if ($status !== next_status($order)) {
+        if (!in_array($status, order_steps($order['fulfillment']), true)) {
             throw new RuleViolation('That status change is unavailable. Refresh the order and use the next step.');
         }
         query('UPDATE orders SET status = ? WHERE id = ? AND vendor_id = ?', [$status, $orderId, $vendor['vendor_id']]);

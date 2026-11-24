@@ -57,8 +57,11 @@ function sign_in(array $input): array
         : null;
     $valid = strlen($password) <= 72 && !str_contains($password, "\0")
         && password_verify($password, $record['password_hash'] ?? '$2y$12$DM.q/FqFrn6X/0AqJ3J8GevHhylLXtYC6GNJH3XdUqUCPXVtf6Ewa');
-    if (!$record || !$valid) {
-        throw new RuleViolation('The email, username or password is incorrect.');
+    if (!$record) {
+        throw new RuleViolation('No account was found with that email or username.');
+    }
+    if (!$valid) {
+        throw new RuleViolation('The password is incorrect.');
     }
     $user = user_by_id((int) $record['id']);
     if (!account_active($user)) {
@@ -89,11 +92,8 @@ function account_details(array $input, bool $passwordRequired = true): array
         return [$username, $email, null];
     }
     if (length($password) < 8 || strlen($password) > 72 || str_contains($password, "\0")
-        || !preg_match('/[0-9]/', $password) || !preg_match('/[\p{P}\p{S}]/u', $password)) {
+        || !preg_match('/[0-9]/', $password)) {
         throw new RuleViolation('Use at least 8 characters, including a number and a special character. Passwords can contain up to 72 bytes.');
-    }
-    if ($password !== $confirmation) {
-        throw new RuleViolation('The passwords do not match.');
     }
     return [$username, $email, password_hash($password, PASSWORD_DEFAULT)];
 }

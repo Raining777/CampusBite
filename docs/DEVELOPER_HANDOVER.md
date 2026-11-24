@@ -82,6 +82,8 @@ php -S 127.0.0.1:8080 -t public
 
 Playwright scripts that drive an installed Chrome (no browser download; `npm i playwright-core`):
 
+> `flowtest.js` and `browsertest.js` assert the **clean** behaviour and are meant to run against `main` only. On `sa3-test-v1` the seeded defects intentionally fail some of their checks. The local-only `seedtest.js` verifies that each seeded defect manifests on the test build — keep it out of the repository for the same reason as the hidden bug log.
+
 - `flowtest.js` — 60 server-side functional checks; needs a fresh demo database per run
 - `browsertest.js` — 11 real-browser checks (named-button form serialization, confirm dialogs, filter counts)
 - `designcheck.js` — 20 design/a11y checks (contrast, overflow, fonts, console errors)

@@ -9,3 +9,5 @@
 .shots/before_jpg/
 .shots/*.png
 .shots/package*.json
+
+.shots/seedtest.js
