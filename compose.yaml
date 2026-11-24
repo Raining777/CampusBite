@@ -1,0 +1,35 @@
+services:
+  db:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: campusbite
+      MYSQL_USER: campusbite
+      MYSQL_PASSWORD: ${CAMPUSBITE_DB_PASSWORD:-campusbite-local-db}
+      MYSQL_ROOT_PASSWORD: ${CAMPUSBITE_DB_ROOT_PASSWORD:-campusbite-local-root}
+    volumes:
+      - campusbite-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--silent"]
+      interval: 3s
+      timeout: 3s
+      retries: 35
+
+  web:
+    build: .
+    ports:
+      - "${CAMPUSBITE_BIND:-127.0.0.1}:${CAMPUSBITE_WEB_PORT:-8080}:80"
+    environment:
+      CAMPUSBITE_DB_HOST: db
+      CAMPUSBITE_DB_DATABASE: campusbite
+      CAMPUSBITE_DB_USERNAME: campusbite
+      CAMPUSBITE_DB_PASSWORD: ${CAMPUSBITE_DB_PASSWORD:-campusbite-local-db}
+      CAMPUSBITE_SESSION_SECURE: ${CAMPUSBITE_SESSION_SECURE:-0}
+      CAMPUSBITE_ADMIN_USERNAME: ${CAMPUSBITE_ADMIN_USERNAME:-}
+      CAMPUSBITE_ADMIN_EMAIL: ${CAMPUSBITE_ADMIN_EMAIL:-}
+      CAMPUSBITE_ADMIN_PASSWORD: ${CAMPUSBITE_ADMIN_PASSWORD:-}
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  campusbite-data:
